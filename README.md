@@ -1,2 +1,1 @@
-cryptoquip
-==========
+Interactive substitution cipher solver.
