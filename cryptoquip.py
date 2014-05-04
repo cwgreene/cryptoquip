@@ -54,14 +54,16 @@ def main():
         cmd = cmd.split()
         if len(cmd) == 0:
             continue
-        elif len(cmd) >= 1 and cmd[0] in cmds:
-            source = cmds[cmd[0]](source, transformations, cmd)
+        # Handle standard transform first
         elif len(cmd) == 2 and len(cmd[0]) == 1 and len(cmd[1]) == 1:
             if cmd[1] in source:
                 print "Already in use"
                 continue
             source = source.replace(cmd[0],cmd[1])
             transformations.append((cmd[0],cmd[1]))
+        # Handle commandas
+        elif len(cmd) >= 1 and cmd[0] in cmds:
+            source = cmds[cmd[0]](source, transformations, cmd)
         else:
             print "Invalid command", cmds.keys()
             continue
