@@ -1,5 +1,6 @@
 import sys
 import colorama
+import tempfile
 
 def undo(source, transformations, cmd):
     if transformations == []:
@@ -31,6 +32,34 @@ def remove_transform(source, transformations, cmd):
     transformations.remove(transform)
     return source.replace(transform[1], transform[0])
 
+def save_transformations(source, transformations, cmd):
+    if len(cmd) != 2:
+        print "Need to specify output file"
+        return source
+    afile = open(cmd[1], "w")
+    afile.write(str(transformations))
+    return source
+
+def load_transformations(source, transformations, cmd):
+    if len(cmd) != 2:
+        print "Need to specify input file"
+        return source
+    afile = open(cmd[1])
+    new_transformations = eval(afile.read()) # TODO: Make this more secure
+    for i in range(len(transformations)):
+        source = undo(source, transformations, [])
+    for transform in new_transformations:
+        source = new_transformation(source, transformations, transform)
+    return source
+
+def new_transformation(source, transformations, cmd):
+    if cmd[1] in source:
+        print "Already in use"
+        return source
+    source = source.replace(cmd[0],cmd[1])
+    transformations.append((cmd[0],cmd[1]))
+    return source
+
 def colorformat(astr):
     result = ""
     for char in astr:
@@ -39,14 +68,15 @@ def colorformat(astr):
         else:
             result += char
     return result
-        
 
 def main():
     transformations = []
     cmds = {'u' : undo,
             'stat' : stats,
             't' : transforms,
-            'remove' : remove_transform}
+            'remove' : remove_transform,
+            'load' : load_transformations,
+            'save' : save_transformations}
     source = open(sys.argv[1]).read()
     while True:
         print colorformat(source)
@@ -56,12 +86,8 @@ def main():
             continue
         # Handle standard transform first
         elif len(cmd) == 2 and len(cmd[0]) == 1 and len(cmd[1]) == 1:
-            if cmd[1] in source:
-                print "Already in use"
-                continue
-            source = source.replace(cmd[0],cmd[1])
-            transformations.append((cmd[0],cmd[1]))
-        # Handle commandas
+            source = new_transformation(source, transformations, cmd)
+        # Handle commands
         elif len(cmd) >= 1 and cmd[0] in cmds:
             source = cmds[cmd[0]](source, transformations, cmd)
         else:
