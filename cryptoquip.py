@@ -1,6 +1,12 @@
 import sys
 import colorama
 import tempfile
+import readline
+import atexit
+
+def onexit(*args, **kwargs):
+    readline.write_history_file(".cryptoquip_history")
+atexit.register(onexit)
 
 def undo(source, transformations, cmd):
     if transformations == []:
@@ -77,10 +83,14 @@ def main():
             'remove' : remove_transform,
             'load' : load_transformations,
             'save' : save_transformations}
-    source = open(sys.argv[1]).read()
+    source = open(sys.argv[1]).read().lower()
+    readline.read_history_file(".cryptoquip_history")
     while True:
         print colorformat(source)
-        cmd = raw_input()
+        try:
+            cmd = raw_input()
+        except EOFError:
+            return
         cmd = cmd.split()
         if len(cmd) == 0:
             continue
