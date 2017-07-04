@@ -1,3 +1,4 @@
+import argparse
 import sys
 import colorama
 import tempfile
@@ -75,15 +76,29 @@ def colorformat(astr):
             result += char
     return result
 
-def main():
+def main(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('inputfile', help='input file.')
+    parser.add_argument('--translation-file', help='translation file to use')
+    parser.add_argument('-b', action='store_true', help='batch mode')
+    options = parser.parse_args(args)
+
     transformations = []
+    source = open(options.inputfile).read().lower()
+
+    if options.translation_file:
+        source = load_transformations(source, transformations, ['', options.translation_file])
+
+    if options.b:
+        print source
+        return
+
     cmds = {'u' : undo,
             'stat' : stats,
             't' : transforms,
             'remove' : remove_transform,
             'load' : load_transformations,
             'save' : save_transformations}
-    source = open(sys.argv[1]).read().lower()
     readline.read_history_file(".cryptoquip_history")
     while True:
         print colorformat(source)
@@ -105,4 +120,4 @@ def main():
             continue
 colorama.init()
 print colorama.Style.BRIGHT,
-main()
+main(sys.argv[1:])
