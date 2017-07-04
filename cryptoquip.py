@@ -4,6 +4,7 @@ import colorama
 import tempfile
 import readline
 import atexit
+import ast
 
 def onexit(*args, **kwargs):
     readline.write_history_file(".cryptoquip_history")
@@ -52,7 +53,7 @@ def load_transformations(source, transformations, cmd):
         print "Need to specify input file"
         return source
     afile = open(cmd[1])
-    new_transformations = eval(afile.read()) # TODO: Make this more secure
+    new_transformations = ast.literal_eval(afile.read()) # TODO: Make this more secure
     for i in range(len(transformations)):
         source = undo(source, transformations, [])
     for transform in new_transformations:
