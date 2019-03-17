@@ -2,7 +2,11 @@ import argparse
 import sys
 import colorama
 import tempfile
-import readline
+try:
+    import readline
+except Exception:
+    print "Failed to import readline"
+    import dummyreadline as readline
 import atexit
 import ast
 
