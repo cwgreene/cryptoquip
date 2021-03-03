@@ -5,7 +5,7 @@ import tempfile
 try:
     import readline
 except Exception:
-    print "Failed to import readline"
+    print("Failed to import readline")
     import dummyreadline as readline
 import atexit
 import ast
@@ -26,16 +26,16 @@ def stats(source, transformations, cmd):
     counts = {}
     for char in source:
         counts[char] = counts.get(char,0)+1
-    print sorted(counts.iteritems(), key=lambda x:x[1])
+    print(sorted(counts.iteritems(), key=lambda x:x[1]))
     return source
 
 def transforms(source, transformations, cmd):
-    print transformations
+    print(transformations)
     return source
 
 def remove_transform(source, transformations, cmd):
     if len(cmd) != 2:
-        print "remove takes one argument"
+        print("remove takes one argument")
         return source
     target = cmd[1]
     for transform in transformations:
@@ -46,7 +46,7 @@ def remove_transform(source, transformations, cmd):
 
 def save_transformations(source, transformations, cmd):
     if len(cmd) != 2:
-        print "Need to specify output file"
+        print("Need to specify output file")
         return source
     afile = open(cmd[1], "w")
     afile.write(str(transformations))
@@ -54,7 +54,7 @@ def save_transformations(source, transformations, cmd):
 
 def load_transformations(source, transformations, cmd):
     if len(cmd) != 2:
-        print "Need to specify input file"
+        print("Need to specify input file")
         return source
     afile = open(cmd[1])
     new_transformations = ast.literal_eval(afile.read()) # TODO: Make this more secure
@@ -66,7 +66,7 @@ def load_transformations(source, transformations, cmd):
 
 def new_transformation(source, transformations, cmd):
     if cmd[1] in source:
-        print "Already in use"
+        print("Already in use")
         return source
     source = source.replace(cmd[0],cmd[1])
     transformations.append((cmd[0],cmd[1]))
@@ -95,7 +95,7 @@ def main(args):
         source = load_transformations(source, transformations, ['', options.translation_file])
 
     if options.b:
-        print source
+        print(source)
         return
 
     cmds = {'u' : undo,
@@ -106,7 +106,7 @@ def main(args):
             'save' : save_transformations}
     readline.read_history_file(".cryptoquip_history")
     while True:
-        print colorformat(source)
+        print(colorformat(source))
         try:
             cmd = raw_input()
         except EOFError:
@@ -121,8 +121,8 @@ def main(args):
         elif len(cmd) >= 1 and cmd[0] in cmds:
             source = cmds[cmd[0]](source, transformations, cmd)
         else:
-            print "Invalid command", cmds.keys()
+            print("Invalid command", cmds.keys())
             continue
 colorama.init()
-print colorama.Style.BRIGHT,
+print(colorama.Style.BRIGHT,)
 main(sys.argv[1:])
