@@ -108,7 +108,7 @@ def main(args):
     while True:
         print(colorformat(source))
         try:
-            cmd = raw_input()
+            cmd = input()
         except EOFError:
             return
         cmd = cmd.split()
