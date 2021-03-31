@@ -10,76 +10,87 @@ except Exception:
 import atexit
 import ast
 
+class CipherText():
+    def __init__(self, source):
+        if type(source) in set([bytes, str]):
+            self.source = [("Encoded", s) for s in source]
+        self.transformations = []
+
+    def replace(self, a, b):
+        for i, (t,s) in enumerate(self.source[:]):
+            if t == a[0] and s == a[1]:
+                self.source.pop(i)
+                self.source.insert(i, b)
+
+    def undo(self, **kwargs):
+        if not self.transformations:
+            return
+        a, b = self.transformations[-1]
+        self.replace(b, a)
+        self.transformations.pop(-1)
+
+    def transforms(self, **kwargs):
+        print(self.transformations)
+
+    def remove_transform(self, cmd, **kwargs):
+        if len(cmd) != 2:
+            print("remove takes one argument")
+            return source
+        target = cmd[1]
+        for transform in self.transformations:
+            if transform[1] == ("Decoded", target) or transform[0] == ("Encoded", target):
+               break
+        self.replace(transform[1], transform[0])
+        self.transformations.remove(transform)
+
+    def save_transformations(self, cmd, **kwargs):
+        if len(cmd) != 2:
+            print("Need to specify output file")
+            return source
+        afile = open(cmd[1], "w")
+        afile.write(str(self.transformations))
+        return source
+
+    def load_transformations(self, cmd, **kwargs):
+        if len(cmd) != 2:
+            print("Need to specify input file")
+            return source
+        afile = open(cmd[1])
+        new_transformations = ast.literal_eval(afile.read()) # TODO: Make this more secure
+        for i in range(len(transformations)):
+            source = undo(source, transformations, [])
+        for transform in new_transformations:
+            source = new_transformation(source, transformations, transform)
+        return source
+
+    def __str__(self):
+        acc = ""
+        for e in self.source:
+            t, s = e
+            if t == "Encoded":
+                acc += s
+            else:
+                acc += colorama.Fore.RED + s + colorama.Fore.WHITE
+        return acc
+
+    def stats(self, **kwargs):
+        counts = {}
+        for code in self.source:
+            counts[code] = counts.get(code,0)+1
+        print(sorted(counts.items(), key=lambda x:x[1]))
+
+    def new_transformation(self, cmd, **kwargs):
+        if ("Decoded", cmd[1]) in self.source:
+            print("Already in use")
+            return
+        transform = (("Encoded", cmd[0]), ("Decoded", cmd[1]))
+        self.replace(transform[0], transform[1])
+        self.transformations.append(transform)
+
+
 def onexit(*args, **kwargs):
     readline.write_history_file(".cryptoquip_history")
 atexit.register(onexit)
-
-def undo(source, transformations, cmd):
-    if transformations == []:
-        return source
-    a, b = transformations[-1]
-    source = source.replace(b, a)
-    transformations.pop(-1)
-    return source
-
-def stats(source, transformations, cmd):
-    counts = {}
-    for char in source:
-        counts[char] = counts.get(char,0)+1
-    print(sorted(counts.items(), key=lambda x:x[1]))
-    return source
-
-def transforms(source, transformations, cmd):
-    print(transformations)
-    return source
-
-def remove_transform(source, transformations, cmd):
-    if len(cmd) != 2:
-        print("remove takes one argument")
-        return source
-    target = cmd[1]
-    for transform in transformations:
-        if transform[1] == target or transform[0] == target:
-           break
-    transformations.remove(transform)
-    return source.replace(transform[1], transform[0])
-
-def save_transformations(source, transformations, cmd):
-    if len(cmd) != 2:
-        print("Need to specify output file")
-        return source
-    afile = open(cmd[1], "w")
-    afile.write(str(transformations))
-    return source
-
-def load_transformations(source, transformations, cmd):
-    if len(cmd) != 2:
-        print("Need to specify input file")
-        return source
-    afile = open(cmd[1])
-    new_transformations = ast.literal_eval(afile.read()) # TODO: Make this more secure
-    for i in range(len(transformations)):
-        source = undo(source, transformations, [])
-    for transform in new_transformations:
-        source = new_transformation(source, transformations, transform)
-    return source
-
-def new_transformation(source, transformations, cmd):
-    if cmd[1] in source:
-        print("Already in use")
-        return source
-    source = source.replace(cmd[0],cmd[1])
-    transformations.append((cmd[0],cmd[1]))
-    return source
-
-def colorformat(astr):
-    result = ""
-    for char in astr:
-        if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-            result += colorama.Fore.RED + char + colorama.Fore.RESET
-        else:
-            result += char
-    return result
 
 def main(args):
 
@@ -92,25 +103,26 @@ def main(args):
     colorama.init()
     print(colorama.Style.BRIGHT,)
 
-    transformations = []
-    source = open(options.inputfile).read().lower()
+    with open(options.inputfile) as afile:
+        source = afile.read()
 
+    ciphertext = CipherText(source)
     if options.translation_file:
-        source = load_transformations(source, transformations, ['', options.translation_file])
+        ciphertext.load_transformations(['', options.translation_file])
 
     if options.b:
         print(source)
         return
 
-    cmds = {'u' : undo,
-            'stat' : stats,
-            't' : transforms,
-            'remove' : remove_transform,
-            'load' : load_transformations,
-            'save' : save_transformations}
+    cmds = {'u' : ciphertext.undo,
+            'stat' : ciphertext.stats,
+            't' : ciphertext.transforms,
+            'remove' : ciphertext.remove_transform,
+            'load' : ciphertext.load_transformations,
+            'save' : ciphertext.save_transformations}
     readline.read_history_file(".cryptoquip_history")
     while True:
-        print(colorformat(source))
+        print(ciphertext)
         try:
             cmd = input()
         except EOFError:
@@ -120,10 +132,10 @@ def main(args):
             continue
         # Handle standard transform first
         elif len(cmd) == 2 and len(cmd[0]) == 1 and len(cmd[1]) == 1:
-            source = new_transformation(source, transformations, cmd)
+            ciphertext.new_transformation(cmd)
         # Handle commands
         elif len(cmd) >= 1 and cmd[0] in cmds:
-            source = cmds[cmd[0]](source, transformations, cmd)
+            cmds[cmd[0]](cmd=cmd)
         else:
             print("Invalid command", cmds.keys())
             continue
