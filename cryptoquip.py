@@ -26,7 +26,7 @@ def stats(source, transformations, cmd):
     counts = {}
     for char in source:
         counts[char] = counts.get(char,0)+1
-    print(sorted(counts.iteritems(), key=lambda x:x[1]))
+    print(sorted(counts.items(), key=lambda x:x[1]))
     return source
 
 def transforms(source, transformations, cmd):
@@ -82,11 +82,15 @@ def colorformat(astr):
     return result
 
 def main(args):
+
     parser = argparse.ArgumentParser()
     parser.add_argument('inputfile', help='input file.')
     parser.add_argument('--translation-file', help='translation file to use')
     parser.add_argument('-b', action='store_true', help='batch mode')
     options = parser.parse_args(args)
+
+    colorama.init()
+    print(colorama.Style.BRIGHT,)
 
     transformations = []
     source = open(options.inputfile).read().lower()
@@ -123,6 +127,6 @@ def main(args):
         else:
             print("Invalid command", cmds.keys())
             continue
-colorama.init()
-print(colorama.Style.BRIGHT,)
-main(sys.argv[1:])
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
