@@ -7,8 +7,10 @@ try:
 except Exception:
     print("Failed to import readline")
     import dummyreadline as readline
-import atexit
 import ast
+
+def onexit(*args, **kwargs):
+    readline.write_history_file(".cryptoquip_history")
 
 class CipherText():
     def __init__(self, source):
@@ -87,11 +89,6 @@ class CipherText():
         self.replace(transform[0], transform[1])
         self.transformations.append(transform)
 
-
-def onexit(*args, **kwargs):
-    readline.write_history_file(".cryptoquip_history")
-atexit.register(onexit)
-
 def main(args):
 
     parser = argparse.ArgumentParser()
@@ -141,4 +138,6 @@ def main(args):
             continue
 
 if __name__ == "__main__":
+    import atexit
+    atexit.register(onexit)
     main(sys.argv[1:])
