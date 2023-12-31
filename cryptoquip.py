@@ -1,11 +1,12 @@
 import argparse
+import os
 import sys
 import colorama
 
 from ciphertext import CipherText
 
 try:
-    import readline
+    import gnureadline as readline
 except Exception:
     print("Failed to import readline")
     import dummyreadline as readline
@@ -29,7 +30,7 @@ def onexit(*args, **kwargs):
 def main(args):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('inputfile', help='input file.')
+    parser.add_argument('inputfiles', nargs="+", help='input files.')
     parser.add_argument('--translation-file', help='translation file to use')
     parser.add_argument('-b', action='store_true', help='batch mode')
     options = parser.parse_args(args)
@@ -37,8 +38,12 @@ def main(args):
     colorama.init()
     print(colorama.Style.BRIGHT,)
 
-    with open(options.inputfile) as afile:
-        source = afile.read()
+    sources = []
+    for s in options.inputfiles:
+        with open(s) as afile:
+            sources.append(afile.read())
+
+    source = "\n\n".join(sources)
 
     ciphertext = CipherText(source)
     if options.translation_file:
@@ -46,6 +51,7 @@ def main(args):
 
     if options.b:
         print(source)
+        print(ciphertext)
         return
 
     cmds = {'u' : ciphertext.undo,

@@ -57,15 +57,16 @@ class CipherText():
         for i in range(len(self.transformations)):
             self.undo()
         for transform in new_transformations:
-            self.new_transformation((transform[0][1], transform[1][1]))
+            self.new_transformation((transform[0][1], transform[1][1]), display=False)
         return self.source
 
-    def new_transformation(self, cmd, **kwargs):
+    def new_transformation(self, cmd, display=True, **kwargs):
         if ("Decoded", cmd[1]) in self.source:
             print("Already in use")
             return
         transform = (("Encoded", cmd[0]), ("Decoded", cmd[1]))
-        print(transform)
+        if display:
+            print(transform)
         self.replace(transform[0], transform[1])
         self.transformations.append(transform)
 
